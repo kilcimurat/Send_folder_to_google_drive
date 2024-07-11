@@ -79,7 +79,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     SCOPES = 'https://www.googleapis.com/auth/drive'
-    CLIENT_SECRET_FILE = 'client_secret_205002953913-vnqhshd5jqkg6itqf3h2o84jb7b1cm1m.apps.googleusercontent.com.json'
+    CLIENT_SECRET_FILE = 'client_secret.json'
     APPLICATION_NAME = 'Drive API Python Quickstart'
     
     authInst = Auth(SCOPES, CLIENT_SECRET_FILE, APPLICATION_NAME)
