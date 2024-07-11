@@ -28,7 +28,7 @@ pip install -r requirements.txt
 To use the script, follow these steps:
 
 ```bash
-python upload_to_google_drive.py <folder_name> <folder_path>
+python main.py <folder_name> <folder_path>
 ```
 * <folder_name>: The name of the folder to be created in Google Drive.
 * <folder_path>: The local path of the folder to be uploaded.
@@ -37,7 +37,7 @@ The script will package the specified folder as a zip file, create a new folder 
 
 ## Example
 ```bash
-python upload_to_google_drive.py "MyFolder" "/path/to/local/folder"
+python main.py "MyFolder" "/path/to/local/folder"
 ```
 
 ## License
