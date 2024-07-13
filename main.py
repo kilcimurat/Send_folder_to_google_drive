@@ -1,13 +1,14 @@
 from __future__ import print_function
-import httplib2
-import os, io
+import os
+import io
 import zipfile
 import argparse
 
 from googleapiclient import discovery
-from oauth2client import client
-from oauth2client.file import Storage
-from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
+from googleapiclient.http import MediaFileUpload
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
 
 class Auth:
     def __init__(self, SCOPES, CLIENT_SECRET_FILE, APPLICATION_NAME):
@@ -24,20 +25,26 @@ class Auth:
         Returns:
             Credentials, the obtained credential.
         """
+        creds = None
         cwd_dir = os.getcwd()
         credential_dir = os.path.join(cwd_dir, '.credentials')
         if not os.path.exists(credential_dir):
             os.makedirs(credential_dir)
         credential_path = os.path.join(credential_dir, 'google-drive-credentials.json')
 
-        store = Storage(credential_path)
-        credentials = store.get()
-        if not credentials or credentials.invalid:
-            flow = client.flow_from_clientsecrets(self.CLIENT_SECRET_FILE, self.SCOPES)
-            flow.user_agent = self.APPLICATION_NAME
-            credentials = tools.run_flow(flow, store)
-            print('Storing credentials to ' + credential_path)
-        return credentials
+        if os.path.exists(credential_path):
+            creds = Credentials.from_authorized_user_file(credential_path, self.SCOPES)
+        
+        if not creds or not creds.valid:
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+            else:
+                flow = InstalledAppFlow.from_client_secrets_file(self.CLIENT_SECRET_FILE, self.SCOPES)
+                creds = flow.run_local_server(port=0)
+            with open(credential_path, 'w') as token:
+                token.write(creds.to_json())
+
+        return creds
 
 def zipFolder(folder_path, zip_name):
     zipf = zipfile.ZipFile(zip_name, 'w', zipfile.ZIP_DEFLATED)
@@ -78,14 +85,13 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    SCOPES = 'https://www.googleapis.com/auth/drive'
+    SCOPES = ['https://www.googleapis.com/auth/drive']
     CLIENT_SECRET_FILE = 'client_secret.json'
     APPLICATION_NAME = 'Drive API Python Quickstart'
     
     authInst = Auth(SCOPES, CLIENT_SECRET_FILE, APPLICATION_NAME)
     credentials = authInst.getCredentials()
     
-    http = credentials.authorize(httplib2.Http())
-    drive_service = discovery.build('drive', 'v3', http=http)
+    drive_service = discovery.build('drive', 'v3', credentials=credentials)
 
     createFolderAndUpload(drive_service, args.folder_name, args.folder_path)
